@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="wiki-plugin-0.1.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/wiki-plugin-0.1.0.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

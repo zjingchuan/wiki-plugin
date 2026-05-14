@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "wiki": {
+      "command": "node",
+      "args": ["D:/WorkSpace/wiki-plugin/dist/mcp/server.js"],
+      "cwd": "D:/WorkSpace/wiki-plugin"
+    }
+  }
+}

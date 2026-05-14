@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(superpowers:brainstorming)",
+      "Bash(mkdir -p docs/raw)",
+      "Bash(echo \"test\")",
+      "Bash(xargs -I {} sh -c 'echo \"=== {} ===\" && cat {}')",
+      "Bash(cp \"D:/WorkSpace/wiki-plugin/skills/wiki-import/SKILL.md\" \"D:/WorkSpace/wiki-plugin/.claude/skills/wiki-import/SKILL.md\")",
+      "Bash(cp \"D:/WorkSpace/wiki-plugin/skills/wiki-relink/SKILL.md\" \"D:/WorkSpace/wiki-plugin/.claude/skills/wiki-relink/SKILL.md\")",
+      "Bash(cp \"D:/WorkSpace/wiki-plugin/skills/wiki-reindex/SKILL.md\" \"D:/WorkSpace/wiki-plugin/.claude/skills/wiki-reindex/SKILL.md\")",
+      "Bash(grep -v \"^archive$\")",
+      "Bash(powershell -Command \"Compress-Archive -Path '.claude-plugin','dist','skills','README.md','package.json' -DestinationPath 'wiki-plugin-0.1.0.zip' -Force\")",
+      "Bash(zip -r wiki-plugin-0.1.0.zip .claude-plugin dist skills README.md package.json -x \"*.map\")",
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:subagent-driven-development)"
+    ]
+  }
+}

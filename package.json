@@ -1,0 +1,40 @@
+{
+  "name": "wiki-plugin",
+  "version": "0.1.0",
+  "description": "Claude Code Plugin: 管理项目文档知识库",
+  "main": "dist/mcp/server.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepack": "npm run build"
+  },
+  "files": [
+    "dist/",
+    ".claude-plugin/",
+    "skills/",
+    "README.md"
+  ],
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "wiki",
+    "documentation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "mammoth": "^1.12.0",
+    "pdf-parse": "^2.4.5",
+    "turndown": "^7.2.4",
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.7.0",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/turndown": "^5.0.6",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,12 @@
+export declare const DOCS_DIR = "docs";
+export declare const RAW_DIR: string;
+export declare const ARCHIVE_DIR: string;
+export declare const WIKI_DIR: string;
+export declare const STATE_FILE: string;
+export declare const INDEX_FILE: string;
+export declare const CATEGORIES: readonly ["产品", "技术", "运维"];
+export type Category = (typeof CATEGORIES)[number];
+export declare function resolveFromRoot(rootDir: string, ...segments: string[]): string;
+export declare function ensureDir(dirPath: string): void;
+export declare function isRawFile(filePath: string): boolean;
+export declare function getRelativePath(rootDir: string, absPath: string): string;
