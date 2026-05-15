@@ -81,8 +81,9 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
           const sheets: string[] = [];
           for (const sheetName of workbook.SheetNames) {
             const sheet = workbook.Sheets[sheetName];
-            const csv = XLSX.utils.sheet_to_csv(sheet);
-            sheets.push(`## Sheet: ${sheetName}\n\n${csv}`);
+            const html = XLSX.utils.sheet_to_html(sheet, { id: sheetName });
+            const md = turndown.turndown(html);
+            sheets.push(`## Sheet: ${sheetName}\n\n${md}`);
           }
           extractedText = sheets.join("\n\n---\n\n");
         } else if (ext === ".pdf") {
