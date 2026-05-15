@@ -1,6 +1,6 @@
 {
   "name": "wiki-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Claude Code Plugin: 管理项目文档知识库",
   "main": "dist/mcp/server.js",
   "scripts": {
