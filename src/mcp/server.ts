@@ -8,6 +8,7 @@ import { registerFindRelated } from "./tools/find-related.js";
 import { registerListAllDocs } from "./tools/list-all-docs.js";
 import { registerUpdateWikilinks } from "./tools/update-wikilinks.js";
 import { registerRebuildIndex } from "./tools/rebuild-index.js";
+import { registerExportDocx } from "./tools/export-docx.js";
 
 const server = new McpServer({
   name: "wiki-plugin",
@@ -24,6 +25,7 @@ registerFindRelated(server, rootDir);
 registerListAllDocs(server, rootDir);
 registerUpdateWikilinks(server, rootDir);
 registerRebuildIndex(server, rootDir);
+registerExportDocx(server, rootDir);
 
 async function main() {
   const transport = new StdioServerTransport();
