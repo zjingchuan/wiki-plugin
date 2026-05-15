@@ -134,10 +134,14 @@ function parseDocEntry(relPath: string, category: string, content: string): DocE
     if (tagsMatch) tags = tagsMatch[1].split(",").map((t) => t.trim());
   }
 
+  // Extract wikilinks, handling [[target|alias]] syntax
   const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
   let match: RegExpExecArray | null;
   while ((match = wikiLinkRegex.exec(content)) !== null) {
-    outgoing.push(match[1]);
+    const inner = match[1];
+    const target = inner.split("|")[0]; // Take part before | (if any)
+    const segments = target.split("/");
+    outgoing.push(segments[segments.length - 1].trim()); // Last path segment
   }
 
   return { path: relPath, title, category, tags, outgoing, incoming: [] };
