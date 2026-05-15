@@ -25,7 +25,10 @@
   "type": "module",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "docx": "^9.6.1",
+    "image-size": "^2.0.2",
     "mammoth": "^1.12.0",
+    "marked": "^18.0.3",
     "pdf-parse": "^2.4.5",
     "turndown": "^7.2.4",
     "xlsx": "^0.18.5",
@@ -36,5 +39,8 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/turndown": "^5.0.6",
     "typescript": "^6.0.3"
+  },
+  "optionalDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.15.0"
   }
 }
