@@ -16,6 +16,7 @@
     "skills/wiki-relink",
     "skills/wiki-reindex",
     "skills/wiki-export",
-    "skills/wiki-init"
+    "skills/wiki-init",
+    "skills/wiki-undo"
   ]
 }

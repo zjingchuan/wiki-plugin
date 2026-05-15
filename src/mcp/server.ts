@@ -10,6 +10,7 @@ import { registerUpdateWikilinks } from "./tools/update-wikilinks.js";
 import { registerRebuildIndex } from "./tools/rebuild-index.js";
 import { registerExportDocx } from "./tools/export-docx.js";
 import { registerInitConfig } from "./tools/init-config.js";
+import { registerUnprocessDoc } from "./tools/unprocess-doc.js";
 
 const server = new McpServer({
   name: "wiki-plugin",
@@ -28,6 +29,7 @@ registerUpdateWikilinks(server, rootDir);
 registerRebuildIndex(server, rootDir);
 registerExportDocx(server, rootDir);
 registerInitConfig(server, rootDir);
+registerUnprocessDoc(server, rootDir);
 
 async function main() {
   const transport = new StdioServerTransport();
