@@ -15,6 +15,7 @@
     "skills/wiki-import",
     "skills/wiki-relink",
     "skills/wiki-reindex",
-    "skills/wiki-export"
+    "skills/wiki-export",
+    "skills/wiki-init"
   ]
 }
