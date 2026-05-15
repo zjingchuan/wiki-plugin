@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-import { resolveFromRoot, ensureDir, INDEX_FILE, WIKI_DIR, DOCS_DIR, CATEGORIES } from "./paths.js";
+import { resolveFromRoot, ensureDir, INDEX_FILE, WIKI_DIR, DOCS_DIR } from "./paths.js";
+import { getCategories } from "./wiki-config.js";
 
 export interface DocEntry {
   path: string;
@@ -65,7 +66,8 @@ export function rebuildIndexFromDisk(rootDir: string): IndexData {
   const docsRoot = resolveFromRoot(rootDir, DOCS_DIR);
   const docs: DocEntry[] = [];
 
-  for (const category of CATEGORIES) {
+  const categories = getCategories(rootDir);
+  for (const category of categories) {
     const catDir = path.join(docsRoot, category);
     if (!fs.existsSync(catDir)) continue;
     scanDir(catDir, docsRoot, category, docs);

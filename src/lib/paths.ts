@@ -8,8 +8,8 @@ export const WIKI_DIR = path.join(DOCS_DIR, ".wiki");
 export const STATE_FILE = path.join(WIKI_DIR, "state.json");
 export const INDEX_FILE = path.join(WIKI_DIR, "index.json");
 
-export const CATEGORIES = ["产品", "技术", "运维"] as const;
-export type Category = (typeof CATEGORIES)[number];
+export const DEFAULT_CATEGORIES = ["产品", "技术", "运维"] as const;
+export type Category = string;
 
 export function resolveFromRoot(rootDir: string, ...segments: string[]): string {
   return path.resolve(rootDir, ...segments);
