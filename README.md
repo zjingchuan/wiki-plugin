@@ -80,6 +80,7 @@ cp -r /path/to/wiki-plugin/skills/* /path/to/your-project/.claude/skills/
 | `/wiki-import <文件名>` | 仅处理指定文件 |
 | `/wiki-relink` | 重新扫描所有文档，补全 wikilinks 关联 |
 | `/wiki-reindex` | 强制重建 `.wiki/index.json` 索引 |
+| `/wiki-export` | 把 MD 文档导出为 Word（.docx） |
 
 ### 处理流程
 
@@ -91,6 +92,30 @@ cp -r /path/to/wiki-plugin/skills/* /path/to/your-project/.claude/skills/
 4. 查找相关已有文档建议关联
 5. **向用户展示提议，等待确认**
 6. 确认后写入 MD 文件、归档原文、更新索引
+
+### 文档导出
+
+把整理好的 Markdown 文档导出为 Word，便于发给不使用 Obsidian 的同事。
+
+```
+/wiki-export                    # 列出全部，让用户选
+/wiki-export 接口设计           # 模糊匹配
+/wiki-export 产品/              # 按分类
+```
+
+支持两种模式：
+- **single**：每个 MD 单独导出为一个 .docx
+- **merged**：多个 MD 合并为一份完整报告（带分页符）
+
+输出位置：`docs/exports/`
+
+**Mermaid 图表**：如果文档包含 mermaid 代码块，需要安装 mermaid-cli 才能渲染为图片：
+
+```bash
+npm install --save-optional @mermaid-js/mermaid-cli
+```
+
+未安装时 mermaid 块会保留为代码块文本。
 
 ## 在 Obsidian 中使用
 
@@ -115,6 +140,7 @@ cp -r /path/to/wiki-plugin/skills/* /path/to/your-project/.claude/skills/
 | `list_all_docs` | 列出全部已整理文档 |
 | `update_wikilinks` | 插入/更新 wikilinks |
 | `rebuild_index` | 重建索引 |
+| `export_docx` | 导出 Markdown 为 Word（.docx） |
 
 ## 技术栈
 
