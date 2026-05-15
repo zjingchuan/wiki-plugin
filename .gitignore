@@ -1,4 +1,7 @@
 node_modules/
+dist/
+*.tgz
+*.zip
 *.log
 .DS_Store
 .env
@@ -6,3 +9,5 @@ node_modules/
 
 # 测试输出
 docs/
+docs/.wiki/logs/
+docs/.wiki/history.json
