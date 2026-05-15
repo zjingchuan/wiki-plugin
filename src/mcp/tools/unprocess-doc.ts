@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { resolveFromRoot, DOCS_DIR, ARCHIVE_DIR } from "../../lib/paths.js";
 import { readState, writeState } from "../../lib/state.js";
+import { appendHistory } from "../../lib/history.js";
 
 export function registerUnprocessDoc(server: McpServer, rootDir: string) {
   server.registerTool(
@@ -70,6 +71,8 @@ export function registerUnprocessDoc(server: McpServer, rootDir: string) {
       delete state.processed[rawPath];
       writeState(rootDir, state);
       actions.push(`清理 state.json 记录`);
+
+      appendHistory(rootDir, "undo", { rawPath, actions, warnings });
 
       return {
         content: [{

@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { rebuildIndexFromDisk, writeIndex } from "../../lib/index-store.js";
+import { appendHistory } from "../../lib/history.js";
 
 export function registerRebuildIndex(server: McpServer, rootDir: string) {
   server.registerTool(
@@ -32,6 +33,7 @@ export function registerRebuildIndex(server: McpServer, rootDir: string) {
       }
 
       writeIndex(rootDir, index);
+      appendHistory(rootDir, "reindex", { docCount: index.docs.length });
       return {
         content: [{ type: "text" as const, text: JSON.stringify({ count: index.docs.length }) }],
       };

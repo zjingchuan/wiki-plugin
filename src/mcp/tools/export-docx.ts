@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { convertToDocx } from "../../lib/md-to-docx/index.js";
 import { logger } from "../../lib/logger.js";
+import { appendHistory } from "../../lib/history.js";
 
 export function registerExportDocx(server: McpServer, rootDir: string) {
   server.registerTool(
@@ -17,6 +18,7 @@ export function registerExportDocx(server: McpServer, rootDir: string) {
     async ({ paths, mode, output }) => {
       const result = await convertToDocx({ rootDir, inputs: paths, mode, output });
       logger.info("文档导出完成", { mode, paths, files: result.files });
+      appendHistory(rootDir, "export", { mode, paths, files: result.files });
       if (result.warnings.length > 0) {
         logger.warn("导出有警告", { warnings: result.warnings });
       }

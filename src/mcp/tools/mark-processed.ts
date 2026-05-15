@@ -5,6 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { resolveFromRoot, ARCHIVE_DIR, ensureDir } from "../../lib/paths.js";
 import { readState, writeState, markProcessed as markEntry } from "../../lib/state.js";
 import { logger } from "../../lib/logger.js";
+import { appendHistory } from "../../lib/history.js";
 
 export interface ArchiveResult {
   ok: boolean;
@@ -71,6 +72,8 @@ export function registerMarkProcessed(server: McpServer, rootDir: string) {
       let state = readState(rootDir);
       state = markEntry(state, rawPath, hash, [outputPath]);
       writeState(rootDir, state);
+
+      appendHistory(rootDir, "import", { rawPath, outputPath, hash });
 
       return {
         content: [{
