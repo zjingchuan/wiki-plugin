@@ -52,32 +52,84 @@
 
 ## 安装
 
-### 方式 1：本地链接（开发/测试）
+### 方式 1：打包安装到已有项目（推荐）
+
+从 [GitHub Releases](https://github.com/zjingchuan/wiki-plugin/releases) 下载最新的 `wiki-plugin-x.x.x.zip`，解压到项目中：
 
 ```bash
-# 1. 进入插件目录构建
-cd /path/to/wiki-plugin
-npm install
-npm run build
+# 1. 在项目根目录下载并解压
+cd /path/to/your-project
+curl -L https://github.com/zjingchuan/wiki-plugin/releases/latest/download/wiki-plugin-0.4.0.zip -o wiki-plugin.zip
+unzip wiki-plugin.zip -d .wiki-plugin
+rm wiki-plugin.zip
 
-# 2. 在你的项目中创建 .claude/settings.json，注册 MCP server
+# 2. 安装运行时依赖
+cd .wiki-plugin && npm install --omit=dev && cd ..
+
+# 3. 在项目中注册 MCP server 和 skills
+# 创建或编辑 .claude/settings.json：
+```
+
+```json
 {
   "mcpServers": {
     "wiki": {
       "command": "node",
-      "args": ["/path/to/wiki-plugin/dist/mcp/server.js"],
+      "args": [".wiki-plugin/dist/mcp/server.js"]
+    }
+  }
+}
+```
+
+```bash
+# 4. 复制 skills 到项目
+cp -r .wiki-plugin/skills/* .claude/skills/
+```
+
+安装完成后运行 `/wiki-init` 配置分类即可开始使用。
+
+### 方式 2：从源码安装（开发/贡献）
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/zjingchuan/wiki-plugin.git
+cd wiki-plugin
+npm install
+npm run build
+
+# 2. 在目标项目中注册（绝对路径）
+```
+
+在目标项目的 `.claude/settings.json` 中添加：
+
+```json
+{
+  "mcpServers": {
+    "wiki": {
+      "command": "node",
+      "args": ["/absolute/path/to/wiki-plugin/dist/mcp/server.js"],
       "cwd": "/path/to/your-project"
     }
   }
 }
+```
 
-# 3. 复制 skills 到项目
+```bash
+# 3. 复制 skills 到目标项目
 cp -r /path/to/wiki-plugin/skills/* /path/to/your-project/.claude/skills/
 ```
 
-### 方式 2：作为 Claude Code Plugin 使用
+### 方式 3：作为 Claude Code Plugin 直接使用
 
-把整个 `wiki-plugin` 目录作为插件，目录中已包含 `.claude-plugin/plugin.json` 配置。
+如果你的 Claude Code 支持插件系统，可以直接将本仓库作为插件加载：
+
+```bash
+# 通过 marketplace 安装（需先添加 marketplace）
+/plugin marketplace add zjingchuan/wiki-plugin
+/plugin install wiki-plugin
+```
+
+或者手动将整个 `wiki-plugin` 目录放到 Claude Code 的插件目录下，目录中已包含 `.claude-plugin/plugin.json` 配置。
 
 ## 使用方法
 
