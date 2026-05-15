@@ -19,9 +19,10 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
       description: "读取 docs/raw/ 下的原始文件，提取为 Markdown（含图片提取）",
       inputSchema: z.object({
         path: z.string().describe("相对于 docs/ 的文件路径，如 raw/xxx.docx"),
+        chunkBy: z.enum(["none", "h1", "h2"]).optional().describe("分块策略：none=整篇返回（默认），h1/h2=按标题分块"),
       }),
     },
-    async ({ path: relPath }) => {
+    async ({ path: relPath, chunkBy }) => {
       const fullPath = resolveFromRoot(rootDir, "docs", relPath);
       if (!fs.existsSync(fullPath)) {
         return { content: [{ type: "text" as const, text: JSON.stringify({ error: "文件不存在" }) }] };
@@ -94,6 +95,23 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
           extractedText = fs.readFileSync(fullPath, "utf-8");
         }
 
+        const mode = chunkBy ?? "none";
+        if (mode === "none") {
+          return {
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify({
+                filename,
+                ext,
+                size: stat.size,
+                images: images.length,
+                content: extractedText,
+              }),
+            }],
+          };
+        }
+
+        const chunks = splitByHeading(extractedText, mode);
         return {
           content: [{
             type: "text" as const,
@@ -102,7 +120,8 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
               ext,
               size: stat.size,
               images: images.length,
-              content: extractedText,
+              chunked: true,
+              chunks,
             }),
           }],
         };
@@ -121,4 +140,29 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
       }
     }
   );
+}
+
+function splitByHeading(md: string, level: "h1" | "h2"): Array<{ title: string; content: string }> {
+  const headingRegex = level === "h1" ? /^# (.+)$/ : /^## (.+)$/;
+  const lines = md.split("\n");
+  const chunks: Array<{ title: string; content: string }> = [];
+  let currentTitle = "前言";
+  let currentLines: string[] = [];
+
+  for (const line of lines) {
+    const m = line.match(headingRegex);
+    if (m) {
+      if (currentLines.length > 0 || currentTitle !== "前言") {
+        chunks.push({ title: currentTitle, content: currentLines.join("\n").trim() });
+      }
+      currentTitle = m[1].trim();
+      currentLines = [];
+    } else {
+      currentLines.push(line);
+    }
+  }
+  if (currentLines.length > 0 || chunks.length === 0) {
+    chunks.push({ title: currentTitle, content: currentLines.join("\n").trim() });
+  }
+  return chunks.filter((c) => c.content.length > 0);
 }
