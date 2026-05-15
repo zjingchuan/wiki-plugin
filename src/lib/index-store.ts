@@ -65,6 +65,32 @@ export function findRelated(index: IndexData, query: string, topK = 5): DocEntry
     .filter((d): d is DocEntry => d !== undefined);
 }
 
+export function updateDocMetadata(filePath: string): void {
+  const content = fs.readFileSync(filePath, "utf-8");
+  const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n?/);
+  if (!fmMatch) return;
+
+  const fmBlock = fmMatch[1];
+  const body = content.slice(fmMatch[0].length);
+  const wordCount = body.replace(/\s/g, "").length;
+  const today = new Date().toISOString().slice(0, 10);
+
+  let updatedFm = fmBlock;
+  if (/^updated:/m.test(updatedFm)) {
+    updatedFm = updatedFm.replace(/^updated:.*$/m, `updated: ${today}`);
+  } else {
+    updatedFm += `\nupdated: ${today}`;
+  }
+  if (/^word_count:/m.test(updatedFm)) {
+    updatedFm = updatedFm.replace(/^word_count:.*$/m, `word_count: ${wordCount}`);
+  } else {
+    updatedFm += `\nword_count: ${wordCount}`;
+  }
+
+  const newContent = `---\n${updatedFm}\n---\n${body}`;
+  fs.writeFileSync(filePath, newContent, "utf-8");
+}
+
 export function rebuildIndexFromDisk(rootDir: string): IndexData {
   const docsRoot = resolveFromRoot(rootDir, DOCS_DIR);
   const docs: DocEntry[] = [];
@@ -85,6 +111,7 @@ function scanDir(dir: string, docsRoot: string, category: string, docs: DocEntry
     if (entry.isDirectory()) {
       scanDir(fullPath, docsRoot, category, docs);
     } else if (entry.name.endsWith(".md")) {
+      updateDocMetadata(fullPath);
       const relPath = path.relative(docsRoot, fullPath).replace(/\\/g, "/");
       const content = fs.readFileSync(fullPath, "utf-8");
       const doc = parseDocEntry(relPath, category, content);
