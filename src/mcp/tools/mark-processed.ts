@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { resolveFromRoot, ARCHIVE_DIR, ensureDir } from "../../lib/paths.js";
 import { readState, writeState, markProcessed as markEntry } from "../../lib/state.js";
+import { logger } from "../../lib/logger.js";
 
 export interface ArchiveResult {
   ok: boolean;
@@ -22,17 +23,21 @@ export function archiveRawFile(rootDir: string, rawRelPath: string): ArchiveResu
 
   try {
     fs.renameSync(srcFull, destFull);
+    logger.info("归档成功", { rawPath: rawRelPath, dest: destFull });
     return { ok: true, archivedPath: destFull };
   } catch (err: any) {
     if (err.code === "EXDEV" || err.code === "EPERM" || err.code === "EBUSY") {
       try {
         fs.copyFileSync(srcFull, destFull);
         fs.unlinkSync(srcFull);
+        logger.info("归档成功（copy+delete）", { rawPath: rawRelPath });
         return { ok: true, archivedPath: destFull };
       } catch (e: any) {
+        logger.error("归档失败", { rawPath: rawRelPath, error: e.message });
         return { ok: false, error: `归档失败（文件可能被占用）: ${e.message}` };
       }
     }
+    logger.error("归档失败", { rawPath: rawRelPath, error: err.message });
     return { ok: false, error: `归档失败: ${err.message}` };
   }
 }

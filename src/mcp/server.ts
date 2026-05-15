@@ -11,6 +11,7 @@ import { registerRebuildIndex } from "./tools/rebuild-index.js";
 import { registerExportDocx } from "./tools/export-docx.js";
 import { registerInitConfig } from "./tools/init-config.js";
 import { registerUnprocessDoc } from "./tools/unprocess-doc.js";
+import { initLogger } from "../lib/logger.js";
 
 const server = new McpServer({
   name: "wiki-plugin",
@@ -18,6 +19,7 @@ const server = new McpServer({
 });
 
 const rootDir = process.cwd();
+initLogger(rootDir);
 
 registerListPending(server, rootDir);
 registerReadRawFile(server, rootDir);
