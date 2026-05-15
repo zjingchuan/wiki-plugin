@@ -33,6 +33,23 @@
     └── index.json            # 文档索引
 ```
 
+## 配置
+
+首次使用建议运行 `/wiki-init` 配置分类（默认是产品/技术/运维）。配置存储在 `docs/.wiki/config.json`：
+
+```json
+{
+  "version": 1,
+  "categories": [
+    { "name": "产品", "description": "需求、PRD、用户手册" },
+    { "name": "技术", "description": "架构、接口、数据库" },
+    { "name": "运维", "description": "部署、监控、合规" }
+  ]
+}
+```
+
+分类描述会影响 Claude 的智能分类准确度，描述越具体越好。
+
 ## 安装
 
 ### 方式 1：本地链接（开发/测试）
@@ -81,6 +98,8 @@ cp -r /path/to/wiki-plugin/skills/* /path/to/your-project/.claude/skills/
 | `/wiki-relink` | 重新扫描所有文档，补全 wikilinks 关联 |
 | `/wiki-reindex` | 强制重建 `.wiki/index.json` 索引 |
 | `/wiki-export` | 把 MD 文档导出为 Word（.docx） |
+| `/wiki-init` | 初始化或修改文档分类配置 |
+| `/wiki-undo <文件名>` | 撤销一次 /wiki-import |
 
 ### 处理流程
 
@@ -141,6 +160,8 @@ npm install --save-optional @mermaid-js/mermaid-cli
 | `update_wikilinks` | 插入/更新 wikilinks |
 | `rebuild_index` | 重建索引 |
 | `export_docx` | 导出 Markdown 为 Word（.docx） |
+| `init_wiki_config` | 初始化/更新分类配置 |
+| `unprocess_doc` | 撤销一次 import 处理 |
 
 ## 技术栈
 
