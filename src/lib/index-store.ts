@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { resolveFromRoot, ensureDir, INDEX_FILE, WIKI_DIR, DOCS_DIR } from "./paths.js";
 import { getCategories } from "./wiki-config.js";
+import { buildIndex as buildTfidfIndex, queryIndex as queryTfidf } from "./tfidf.js";
 
 export interface DocEntry {
   path: string;
@@ -49,17 +50,19 @@ export function removeDoc(index: IndexData, docPath: string): IndexData {
 }
 
 export function findRelated(index: IndexData, query: string, topK = 5): DocEntry[] {
-  const keywords = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const scored = index.docs.map((doc) => {
-    const text = `${doc.title} ${doc.tags.join(" ")} ${doc.path}`.toLowerCase();
-    const score = keywords.reduce((acc, kw) => acc + (text.includes(kw) ? 1 : 0), 0);
-    return { doc, score };
-  });
-  return scored
-    .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topK)
-    .map((s) => s.doc);
+  if (index.docs.length === 0) return [];
+
+  const tfidfDocs = index.docs.map((doc) => ({
+    id: doc.path,
+    text: `${doc.title} ${doc.tags.join(" ")} ${doc.category}`,
+  }));
+
+  const tfidfIndex = buildTfidfIndex(tfidfDocs);
+  const results = queryTfidf(tfidfIndex, query, topK);
+
+  return results
+    .map((r) => index.docs.find((d) => d.path === r.id))
+    .filter((d): d is DocEntry => d !== undefined);
 }
 
 export function rebuildIndexFromDisk(rootDir: string): IndexData {
