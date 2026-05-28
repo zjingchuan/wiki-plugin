@@ -141,3 +141,31 @@ test("convertBatch 并发调用不冲突", async () => {
   }
 });
 
+test("convertBatch setupHint 仅在工具不可用时设置", async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "emf-hint-"));
+  try {
+    fs.mkdirSync(path.join(tmpDir, "docs/.wiki"), { recursive: true });
+    // empty list, no tool needed
+    const report = await convertBatch([], { rootDir: tmpDir });
+    assert.strictEqual(report.setupHint, undefined);
+
+    // file not found, but tool may or may not be available
+    const reportMissing = await convertBatch(
+      [path.join(tmpDir, "missing.x-emf")],
+      { rootDir: tmpDir },
+    );
+    if (reportMissing.toolUsed === "none") {
+      assert.ok(reportMissing.setupHint, "工具不可用时应有 setupHint");
+    } else {
+      // tool present, missing file - should NOT have setupHint
+      assert.strictEqual(
+        reportMissing.setupHint,
+        undefined,
+        "工具可用但单项失败不应有 setupHint",
+      );
+    }
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+

@@ -51,7 +51,21 @@ export function registerReconvertImages(server: McpServer, rootDir: string) {
       // Determine scan scope
       let emfFiles: string[];
       if (scope) {
-        const scopeDir = path.join(docsDir, scope);
+        const scopeDir = path.resolve(docsDir, scope);
+        const docsResolved = path.resolve(docsDir);
+        if (
+          !scopeDir.startsWith(docsResolved + path.sep) &&
+          scopeDir !== docsResolved
+        ) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({ error: "scope 必须在 docs/ 目录下" }),
+              },
+            ],
+          };
+        }
         emfFiles = findEmfFiles(scopeDir);
       } else {
         emfFiles = findEmfFiles(assetsDir);
@@ -67,7 +81,7 @@ export function registerReconvertImages(server: McpServer, rootDir: string) {
       let mdFilesModified = 0;
       if (report.succeeded > 0) {
         const mdFiles = findMdFiles(docsDir);
-        const commentRegex = /\n<!-- ⚠️ EMF 矢量图未转换：.*?补转。 -->/g;
+        const commentRegex = /\n<!-- ⚠️ EMF 矢量图未转换：.*?补转。 -->/gs;
 
         for (const mdFile of mdFiles) {
           let content = fs.readFileSync(mdFile, "utf-8");

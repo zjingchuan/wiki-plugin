@@ -153,26 +153,38 @@ function getCachePath(rootDir: string, hash: string): string {
 
 function runSoffice(
   sofficePath: string,
-  inputs: string[],
+  items: Array<{ source: string; hash: string }>,
   outDir: string,
   timeoutMs: number
 ): Promise<{ error?: string }> {
   return new Promise((resolve) => {
-    const args = [
-      "--headless",
-      "--convert-to",
-      "svg",
-      "--outdir",
-      outDir,
-      ...inputs,
-    ];
-    execFile(sofficePath, args, { timeout: timeoutMs }, (error) => {
-      if (error) {
-        resolve({ error: error.message });
-      } else {
-        resolve({});
+    try {
+      // Copy inputs to outDir with clean .emf extension to avoid soffice's
+      // greedy extension stripping (e.g., "x.x-emf" -> "x.x.svg")
+      const stagedInputs: string[] = [];
+      for (const item of items) {
+        const stagedPath = path.join(outDir, `${item.hash}.emf`);
+        fs.copyFileSync(item.source, stagedPath);
+        stagedInputs.push(stagedPath);
       }
-    });
+      const args = [
+        "--headless",
+        "--convert-to",
+        "svg",
+        "--outdir",
+        outDir,
+        ...stagedInputs,
+      ];
+      execFile(sofficePath, args, { timeout: timeoutMs }, (error) => {
+        if (error) {
+          resolve({ error: error.message });
+        } else {
+          resolve({});
+        }
+      });
+    } catch (e: any) {
+      resolve({ error: e.message });
+    }
   });
 }
 
@@ -293,6 +305,7 @@ export async function convertBatch(
       failed: results.filter((r) => !r.success).length,
       fromCache: fromCacheCount,
       toolUsed: tool.kind,
+      setupHint: tool.kind === "none" ? SETUP_HINT : undefined,
       results,
     };
   }
@@ -325,10 +338,9 @@ export async function convertBatch(
     let convertResults: { error?: string };
 
     if (tool.kind === "soffice") {
-      const sources = toConvert.map((item) => item.source);
       convertResults = await runSoffice(
         tool.path!,
-        sources,
+        toConvert.map((item) => ({ source: item.source, hash: item.hash })),
         tmpOutDir,
         timeoutMs
       );
@@ -344,8 +356,15 @@ export async function convertBatch(
 
     // Process conversion results
     for (const item of toConvert) {
-      const basename = path.basename(item.source, path.extname(item.source));
-      const tmpSvg = path.join(tmpOutDir, `${basename}.svg`);
+      // soffice writes <hash>.svg (we stage inputs as <hash>.emf to avoid
+      // greedy extension stripping); magick writes <basename>.svg
+      const tmpSvg =
+        tool.kind === "soffice"
+          ? path.join(tmpOutDir, `${item.hash}.svg`)
+          : path.join(
+              tmpOutDir,
+              path.basename(item.source, path.extname(item.source)) + ".svg"
+            );
 
       if (fs.existsSync(tmpSvg)) {
         // Conversion succeeded
@@ -394,7 +413,7 @@ export async function convertBatch(
     failed: results.filter((r) => !r.success).length,
     fromCache: fromCacheCount,
     toolUsed: tool.kind,
-    setupHint: results.some((r) => !r.success) ? SETUP_HINT : undefined,
+    setupHint: undefined,
     results,
   };
 }
