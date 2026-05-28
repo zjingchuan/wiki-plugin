@@ -1,10 +1,14 @@
 import test from "node:test";
 import assert from "node:assert";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 import {
   detectTool,
   isEmfFile,
   resetToolCache,
   SETUP_HINT,
+  convertBatch,
   type ToolInfo,
 } from "../emf-converter.js";
 
@@ -66,3 +70,52 @@ test("SETUP_HINT 包含关键安装提示信息", () => {
   assert.ok(SETUP_HINT.includes("ImageMagick"));
   assert.ok(SETUP_HINT.includes("https://www.libreoffice.org/"));
 });
+
+test("convertBatch 空列表返回空报告", async () => {
+  const report = await convertBatch([], { rootDir: process.cwd() });
+  assert.strictEqual(report.total, 0);
+  assert.strictEqual(report.succeeded, 0);
+  assert.strictEqual(report.failed, 0);
+  assert.strictEqual(report.fromCache, 0);
+  assert.strictEqual(report.toolUsed, "none");
+  assert.strictEqual(report.results.length, 0);
+});
+
+test("convertBatch 输入文件不存在时标记单项 failed 但不阻塞", async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "emf-test-"));
+  try {
+    const nonexistent = path.join(tmpDir, "nonexistent-file.x-emf");
+    const report = await convertBatch([nonexistent], { rootDir: tmpDir });
+
+    assert.strictEqual(report.total, 1);
+    assert.strictEqual(report.failed, 1);
+    assert.strictEqual(report.results.length, 1);
+    assert.strictEqual(report.results[0].success, false);
+    assert.ok(report.results[0].error);
+    assert.match(report.results[0].error, /不存在/);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test("convertBatch 工具不可用时所有未命中项标 failed", async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "emf-test-"));
+  try {
+    const fakeEmf = path.join(tmpDir, "fake.x-emf");
+    fs.writeFileSync(fakeEmf, Buffer.from([0x01, 0x02, 0x03, 0x04]));
+
+    const report = await convertBatch([fakeEmf], { rootDir: tmpDir });
+
+    if (report.toolUsed === "none") {
+      assert.strictEqual(report.failed, 1);
+      assert.ok(report.setupHint);
+      assert.ok(report.results[0].error);
+    } else {
+      // Tool was available — skip the failure-path assertion. Just confirm shape.
+      assert.strictEqual(report.total, 1);
+    }
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
