@@ -43,8 +43,19 @@ function whichSync(bin: string): string | null {
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
     });
-    const firstLine = result.trim().split(/\r?\n/)[0];
-    return firstLine || null;
+    // Windows `where` searches CWD before PATH, so a file named e.g. `soffice`
+    // (no extension) dropped in CWD would shadow the real executable. Filter
+    // to `.exe` results to avoid path-hijacking via CWD.
+    const lines = result
+      .trim()
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const found =
+      process.platform === "win32"
+        ? lines.find((l) => l.toLowerCase().endsWith(".exe"))
+        : lines[0];
+    return found ?? null;
   } catch {
     return null;
   }

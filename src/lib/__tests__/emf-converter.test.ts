@@ -36,7 +36,8 @@ test("resetToolCache 清空缓存后可重新检测", () => {
   resetToolCache();
   const second = detectTool();
   // After reset, kind should still be the same (system unchanged)
-  // but the object is allowed to be a fresh reference.
+  // but the object must be a fresh reference (proves cache was cleared).
+  assert.notStrictEqual(first, second, "应返回新的对象实例（缓存已清空）");
   assert.strictEqual(first.kind, second.kind);
   assert.strictEqual(first.path, second.path);
 });
