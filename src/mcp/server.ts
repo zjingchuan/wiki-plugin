@@ -11,6 +11,7 @@ import { registerRebuildIndex } from "./tools/rebuild-index.js";
 import { registerExportDocx } from "./tools/export-docx.js";
 import { registerInitConfig } from "./tools/init-config.js";
 import { registerUnprocessDoc } from "./tools/unprocess-doc.js";
+import { registerReconvertImages } from "./tools/reconvert-images.js";
 import { initLogger } from "../lib/logger.js";
 
 const server = new McpServer({
@@ -32,6 +33,7 @@ registerRebuildIndex(server, rootDir);
 registerExportDocx(server, rootDir);
 registerInitConfig(server, rootDir);
 registerUnprocessDoc(server, rootDir);
+registerReconvertImages(server, rootDir);
 
 async function main() {
   const transport = new StdioServerTransport();
