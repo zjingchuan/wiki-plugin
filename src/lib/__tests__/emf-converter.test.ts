@@ -119,3 +119,25 @@ test("convertBatch 工具不可用时所有未命中项标 failed", async () => 
   }
 });
 
+test("convertBatch 并发调用不冲突", async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "emf-concurrent-"));
+  try {
+    fs.mkdirSync(path.join(tmpDir, "docs/.wiki"), { recursive: true });
+    const file1 = path.join(tmpDir, "file1.x-emf");
+    const file2 = path.join(tmpDir, "file2.x-emf");
+    fs.writeFileSync(file1, Buffer.from([0x01, 0x02, 0x03]));
+    fs.writeFileSync(file2, Buffer.from([0x04, 0x05, 0x06]));
+
+    const [report1, report2] = await Promise.all([
+      convertBatch([file1], { rootDir: tmpDir }),
+      convertBatch([file2], { rootDir: tmpDir }),
+    ]);
+
+    assert.strictEqual(report1.total, 1);
+    assert.strictEqual(report2.total, 1);
+    // Both should complete without temp dir collision
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+

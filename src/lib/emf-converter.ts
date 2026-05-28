@@ -4,6 +4,17 @@ import * as fs from "fs";
 import * as crypto from "crypto";
 import { resolveFromRoot, WIKI_DIR, ensureDir } from "./paths.js";
 
+function validatePath(filePath: string): void {
+  const normalized = path.normalize(filePath);
+  if (normalized.includes('\0')) {
+    throw new Error('Invalid file path: null byte detected');
+  }
+  // Allow relative paths but block suspicious patterns
+  if (normalized.includes('..') && !path.isAbsolute(filePath)) {
+    throw new Error('Invalid file path: directory traversal detected');
+  }
+}
+
 export type ToolKind = "soffice" | "magick" | "none";
 
 export interface ToolInfo {
@@ -228,8 +239,16 @@ export async function convertBatch(
     [];
 
   for (const source of emfPaths) {
+    validatePath(source);
+
     if (!fs.existsSync(source)) {
       results.push({ source, success: false, error: "文件不存在" });
+      continue;
+    }
+
+    const stats = fs.statSync(source);
+    if (stats.size === 0) {
+      results.push({ source, success: false, error: "文件为空" });
       continue;
     }
 
@@ -299,7 +318,7 @@ export async function convertBatch(
   }
 
   // Phase 3 — Conversion
-  const tmpOutDir = path.join(cacheDir, `_tmp_${Date.now()}`);
+  const tmpOutDir = path.join(cacheDir, `_tmp_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`);
   ensureDir(tmpOutDir);
 
   try {
@@ -336,8 +355,8 @@ export async function convertBatch(
           try {
             const cachePath = getCachePath(options.rootDir, item.hash);
             fs.copyFileSync(tmpSvg, cachePath);
-          } catch {
-            // Cache write failure is non-blocking
+          } catch (cacheErr: any) {
+            console.warn(`[emf-converter] Cache write failed for ${item.hash}: ${cacheErr.message}`);
           }
           results.push({
             source: item.source,
