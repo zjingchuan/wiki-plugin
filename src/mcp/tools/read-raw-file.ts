@@ -6,6 +6,7 @@ import { resolveFromRoot, DOCS_DIR, ensureDir } from "../../lib/paths.js";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import TurndownService from "turndown";
+import { convertBatch, isEmfFile } from "../../lib/emf-converter.js";
 
 const turndown = new TurndownService({
   headingStyle: "atx",
@@ -36,12 +37,18 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
       try {
         let extractedText = "";
         const images: string[] = [];
+        let imagesConverted = 0;
+        let imagesFailedConvert = 0;
+        let imagesFromCache = 0;
+        let toolUsed: string = "none";
+        let setupHint: string | undefined;
 
         if (ext === ".docx" || ext === ".doc") {
           const assetsDir = resolveFromRoot(rootDir, DOCS_DIR, "assets", filenameNoExt);
           ensureDir(assetsDir);
 
           let imgIndex = 0;
+          const emfQueue: string[] = [];
           const result = await mammoth.convertToHtml(
             { path: fullPath },
             {
@@ -55,6 +62,9 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
                 fs.writeFileSync(imgPath, buffer);
 
                 images.push(imgName);
+                if (isEmfFile(imgName)) {
+                  emfQueue.push(imgPath);
+                }
                 return { src: `OBSIDIAN_WIKILINK::${imgName}` };
               }),
             }
@@ -66,6 +76,36 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
             /!\[[^\]]*\]\(OBSIDIAN_WIKILINK::([^)]+)\)/g,
             (_match, name) => `![[${name}]]`
           );
+
+          // EMF/WMF batch conversion
+          if (emfQueue.length > 0) {
+            const report = await convertBatch(emfQueue, { rootDir });
+            toolUsed = report.toolUsed;
+            setupHint = report.setupHint;
+            imagesConverted = report.succeeded;
+            imagesFailedConvert = report.failed;
+            imagesFromCache = report.fromCache;
+
+            for (const r of report.results) {
+              const srcBase = path.basename(r.source);
+              if (r.success && r.output) {
+                const dstBase = path.basename(r.output);
+                const escaped = srcBase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                extractedText = extractedText.replace(
+                  new RegExp(`!\\[\\[${escaped}\\]\\]`, "g"),
+                  `![[${dstBase}]]`
+                );
+                try { fs.unlinkSync(r.source); } catch {}
+              } else {
+                const escaped = srcBase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                const comment = `<!-- ⚠️ EMF 矢量图未转换：${r.error}。安装 LibreOffice 后运行 /wiki-reconvert-images 补转。 -->`;
+                extractedText = extractedText.replace(
+                  new RegExp(`(!\\[\\[${escaped}\\]\\])`, "g"),
+                  `$1\n${comment}`
+                );
+              }
+            }
+          }
 
           if (result.messages.length > 0) {
             const warnings = result.messages
@@ -106,6 +146,11 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
                 ext,
                 size: stat.size,
                 images: images.length,
+                imagesConverted,
+                imagesFailedConvert,
+                imagesFromCache,
+                toolUsed,
+                setupHint,
                 content: extractedText,
               }),
             }],
@@ -121,6 +166,11 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
               ext,
               size: stat.size,
               images: images.length,
+              imagesConverted,
+              imagesFailedConvert,
+              imagesFromCache,
+              toolUsed,
+              setupHint,
               chunked: true,
               chunks,
             }),
