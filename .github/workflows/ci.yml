@@ -20,7 +20,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: node --test dist/lib/__tests__/wiki-config.test.js dist/lib/md-to-docx/__tests__/preprocess.test.js dist/lib/md-to-docx/__tests__/parser.test.js dist/mcp/tools/__tests__/mark-processed.test.js
+      - run: node --test dist/lib/__tests__/wiki-config.test.js dist/lib/__tests__/emf-converter.test.js dist/lib/md-to-docx/__tests__/preprocess.test.js dist/lib/md-to-docx/__tests__/parser.test.js dist/mcp/tools/__tests__/mark-processed.test.js dist/mcp/tools/__tests__/reconvert-images.test.js
       - run: npm pack
 
   release:
