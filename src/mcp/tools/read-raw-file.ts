@@ -6,11 +6,59 @@ import { resolveFromRoot, DOCS_DIR, ensureDir } from "../../lib/paths.js";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 import TurndownService from "turndown";
+import { tables as gfmTables } from "turndown-plugin-gfm";
 import { convertBatch, isEmfFile } from "../../lib/emf-converter.js";
 
 const turndown = new TurndownService({
   headingStyle: "atx",
   codeBlockStyle: "fenced",
+});
+turndown.use(gfmTables);
+
+// Custom rule: convert tables without <thead> by treating first row as header
+turndown.addRule("table-without-thead", {
+  filter(node) {
+    return (
+      node.nodeName === "TABLE" && !node.querySelector("thead")
+    );
+  },
+  replacement(_content, node) {
+    const tableEl = node as unknown as HTMLTableElement;
+    const rows = tableEl.querySelectorAll("tr");
+    if (rows.length === 0) return "";
+
+    const getCells = (tr: Element): string[] => {
+      const cells = tr.querySelectorAll("td, th");
+      const result: string[] = [];
+      for (let i = 0; i < cells.length; i++) {
+        let text = (cells[i] as unknown as HTMLElement).innerHTML
+          .replace(/<br\s*\/?>/gi, " ")
+          .replace(/<[^>]+>/g, "")
+          .replace(/\|/g, "\\|")
+          .replace(/\n/g, " ")
+          .trim();
+        result.push(text);
+      }
+      return result;
+    };
+
+    const headerCells = getCells(rows[0] as unknown as Element);
+    if (headerCells.length === 0) return "";
+
+    const lines: string[] = [];
+    lines.push("| " + headerCells.join(" | ") + " |");
+    lines.push("| " + headerCells.map(() => "---").join(" | ") + " |");
+
+    for (let i = 1; i < rows.length; i++) {
+      const cells = getCells(rows[i] as unknown as Element);
+      while (cells.length < headerCells.length) cells.push("");
+      lines.push(
+        "| " + cells.slice(0, headerCells.length).join(" | ") + " |"
+      );
+    }
+
+    return "\n\n" + lines.join("\n") + "\n\n";
+  },
 });
 
 export function registerReadRawFile(server: McpServer, rootDir: string) {
@@ -129,7 +177,7 @@ export function registerReadRawFile(server: McpServer, rootDir: string) {
         } else if (ext === ".pdf") {
           const { PDFParse } = await import("pdf-parse");
           const buffer = fs.readFileSync(fullPath);
-          const pdf = new PDFParse(buffer);
+          const pdf = new PDFParse({ data: new Uint8Array(buffer) });
           const result = await pdf.getText();
           extractedText = result.text;
         } else {

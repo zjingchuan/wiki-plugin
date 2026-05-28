@@ -1,23 +1,6 @@
 {
   "name": "wiki-plugin",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "管理项目文档知识库，自动转换原始文件并建立 Obsidian 兼容的双向链接",
-  "hooks": {
-    "SessionStart": "dist/hooks/session-start.js"
-  },
-  "mcpServers": {
-    "wiki": {
-      "command": "node",
-      "args": ["dist/mcp/server.js"]
-    }
-  },
-  "skills": [
-    "skills/wiki-import",
-    "skills/wiki-relink",
-    "skills/wiki-reindex",
-    "skills/wiki-export",
-    "skills/wiki-init",
-    "skills/wiki-undo",
-    "skills/wiki-reconvert-images"
-  ]
+  "license": "ISC"
 }

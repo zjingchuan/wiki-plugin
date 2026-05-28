@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.1] - 2026-05-28
+
+### Fixed
+- docx 表格转换：启用 turndown-plugin-gfm，并新增自定义规则处理无 thead 的表格（mammoth 输出的多数表格无 thead 标签）
+- 真实文档验证：145 个表格从 0 转换成功 → 145 全部转换成功，0 个 HTML 残留
+
 ## [0.5.0] - 2026-05-28
 
 ### Added

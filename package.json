@@ -1,6 +1,6 @@
 {
   "name": "wiki-plugin",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Claude Code Plugin: 管理项目文档知识库",
   "main": "dist/mcp/server.js",
   "scripts": {
@@ -12,6 +12,8 @@
     "dist/",
     ".claude-plugin/",
     "skills/",
+    "hooks/",
+    ".mcp.json",
     "README.md"
   ],
   "keywords": [
@@ -31,6 +33,7 @@
     "marked": "^18.0.3",
     "pdf-parse": "^2.4.5",
     "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2",
     "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },

@@ -16,7 +16,7 @@ import { initLogger } from "../lib/logger.js";
 
 const server = new McpServer({
   name: "wiki-plugin",
-  version: "0.5.0",
+  version: "0.5.1",
 });
 
 const rootDir = process.cwd();
