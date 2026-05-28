@@ -17,6 +17,7 @@
     "skills/wiki-reindex",
     "skills/wiki-export",
     "skills/wiki-init",
-    "skills/wiki-undo"
+    "skills/wiki-undo",
+    "skills/wiki-reconvert-images"
   ]
 }
