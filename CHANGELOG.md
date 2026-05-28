@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0] - 2026-05-28
+
+### Added
+- `/wiki-reconvert-images` command to batch convert EMF/WMF images to SVG
+- Automatic EMF/WMF → SVG conversion during `/wiki-import` (requires LibreOffice or ImageMagick)
+- Conversion result cache at `docs/.wiki/emf-cache/` (sha256 keyed, gitignored)
+- Setup hint with install link when no conversion tool detected
+- Path validation to block null bytes and directory traversal
+- Empty file detection in conversion pipeline
+
+### Changed
+- `read_raw_file` returns `imagesConverted`, `imagesFailedConvert`, `imagesFromCache`, `toolUsed`, `setupHint` fields
+
 ## [0.3.0] - 2026-05-15
 
 ### Added

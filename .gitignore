@@ -11,3 +11,4 @@ dist/
 docs/
 docs/.wiki/logs/
 docs/.wiki/history.json
+docs/.wiki/emf-cache/

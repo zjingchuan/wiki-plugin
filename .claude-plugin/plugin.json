@@ -1,6 +1,6 @@
 {
   "name": "wiki-plugin",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "管理项目文档知识库，自动转换原始文件并建立 Obsidian 兼容的双向链接",
   "hooks": {
     "SessionStart": "dist/hooks/session-start.js"
