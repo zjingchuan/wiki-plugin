@@ -1,6 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
-import { resolveFromRoot, ensureDir, INDEX_FILE, WIKI_DIR, DOCS_DIR, CATEGORIES } from "./paths.js";
+import { resolveFromRoot, ensureDir, INDEX_FILE, WIKI_DIR, DOCS_DIR } from "./paths.js";
+import { getCategories } from "./wiki-config.js";
+import { buildIndex as buildTfidfIndex, queryIndex as queryTfidf } from "./tfidf.js";
 function defaultIndex() {
     return { docs: [] };
 }
@@ -31,22 +33,48 @@ export function removeDoc(index, docPath) {
     return { docs: index.docs.filter((d) => d.path !== docPath) };
 }
 export function findRelated(index, query, topK = 5) {
-    const keywords = query.toLowerCase().split(/\s+/).filter(Boolean);
-    const scored = index.docs.map((doc) => {
-        const text = `${doc.title} ${doc.tags.join(" ")} ${doc.path}`.toLowerCase();
-        const score = keywords.reduce((acc, kw) => acc + (text.includes(kw) ? 1 : 0), 0);
-        return { doc, score };
-    });
-    return scored
-        .filter((s) => s.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, topK)
-        .map((s) => s.doc);
+    if (index.docs.length === 0)
+        return [];
+    const tfidfDocs = index.docs.map((doc) => ({
+        id: doc.path,
+        text: `${doc.title} ${doc.tags.join(" ")} ${doc.category}`,
+    }));
+    const tfidfIndex = buildTfidfIndex(tfidfDocs);
+    const results = queryTfidf(tfidfIndex, query, topK);
+    return results
+        .map((r) => index.docs.find((d) => d.path === r.id))
+        .filter((d) => d !== undefined);
+}
+export function updateDocMetadata(filePath) {
+    const content = fs.readFileSync(filePath, "utf-8");
+    const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n?/);
+    if (!fmMatch)
+        return;
+    const fmBlock = fmMatch[1];
+    const body = content.slice(fmMatch[0].length);
+    const wordCount = body.replace(/\s/g, "").length;
+    const today = new Date().toISOString().slice(0, 10);
+    let updatedFm = fmBlock;
+    if (/^updated:/m.test(updatedFm)) {
+        updatedFm = updatedFm.replace(/^updated:.*$/m, `updated: ${today}`);
+    }
+    else {
+        updatedFm += `\nupdated: ${today}`;
+    }
+    if (/^word_count:/m.test(updatedFm)) {
+        updatedFm = updatedFm.replace(/^word_count:.*$/m, `word_count: ${wordCount}`);
+    }
+    else {
+        updatedFm += `\nword_count: ${wordCount}`;
+    }
+    const newContent = `---\n${updatedFm}\n---\n${body}`;
+    fs.writeFileSync(filePath, newContent, "utf-8");
 }
 export function rebuildIndexFromDisk(rootDir) {
     const docsRoot = resolveFromRoot(rootDir, DOCS_DIR);
     const docs = [];
-    for (const category of CATEGORIES) {
+    const categories = getCategories(rootDir);
+    for (const category of categories) {
         const catDir = path.join(docsRoot, category);
         if (!fs.existsSync(catDir))
             continue;
@@ -62,6 +90,7 @@ function scanDir(dir, docsRoot, category, docs) {
             scanDir(fullPath, docsRoot, category, docs);
         }
         else if (entry.name.endsWith(".md")) {
+            updateDocMetadata(fullPath);
             const relPath = path.relative(docsRoot, fullPath).replace(/\\/g, "/");
             const content = fs.readFileSync(fullPath, "utf-8");
             const doc = parseDocEntry(relPath, category, content);
@@ -83,10 +112,14 @@ function parseDocEntry(relPath, category, content) {
         if (tagsMatch)
             tags = tagsMatch[1].split(",").map((t) => t.trim());
     }
+    // Extract wikilinks, handling [[target|alias]] syntax
     const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
     let match;
     while ((match = wikiLinkRegex.exec(content)) !== null) {
-        outgoing.push(match[1]);
+        const inner = match[1];
+        const target = inner.split("|")[0]; // Take part before | (if any)
+        const segments = target.split("/");
+        outgoing.push(segments[segments.length - 1].trim()); // Last path segment
     }
     return { path: relPath, title, category, tags, outgoing, incoming: [] };
 }

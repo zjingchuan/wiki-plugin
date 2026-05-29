@@ -1,0 +1,19 @@
+{
+  "name": "wiki-plugin",
+  "owner": {
+    "name": "zjingchuan",
+    "url": "https://github.com/zjingchuan"
+  },
+  "metadata": {
+    "description": "Claude Code 插件：管理项目文档知识库，自动转换原始文件并建立 Obsidian 兼容的双向链接",
+    "version": "0.5.1",
+    "repository": "https://github.com/zjingchuan/wiki-plugin"
+  },
+  "plugins": [
+    {
+      "name": "wiki-plugin",
+      "description": "管理项目文档知识库，自动转换原始文件并建立 Obsidian 兼容的双向链接",
+      "source": "npm:wiki-plugin"
+    }
+  ]
+}

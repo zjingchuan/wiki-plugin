@@ -35,7 +35,16 @@ registerInitConfig(server, rootDir);
 registerUnprocessDoc(server, rootDir);
 registerReconvertImages(server, rootDir);
 
+function exitOnParentDisconnect() {
+  const shutdown = () => process.exit(0);
+  process.on("disconnect", shutdown);
+  process.stdin.on("end", shutdown);
+  process.stdin.on("close", shutdown);
+  process.stdin.on("error", shutdown);
+}
+
 async function main() {
+  exitOnParentDisconnect();
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }

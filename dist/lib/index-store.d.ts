@@ -14,4 +14,5 @@ export declare function writeIndex(rootDir: string, index: IndexData): void;
 export declare function upsertDoc(index: IndexData, entry: DocEntry): IndexData;
 export declare function removeDoc(index: IndexData, docPath: string): IndexData;
 export declare function findRelated(index: IndexData, query: string, topK?: number): DocEntry[];
+export declare function updateDocMetadata(filePath: string): void;
 export declare function rebuildIndexFromDisk(rootDir: string): IndexData;

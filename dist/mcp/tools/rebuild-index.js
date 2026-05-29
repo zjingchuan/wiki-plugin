@@ -1,5 +1,6 @@
 import { z } from "zod/v4";
 import { rebuildIndexFromDisk, writeIndex } from "../../lib/index-store.js";
+import { appendHistory } from "../../lib/history.js";
 export function registerRebuildIndex(server, rootDir) {
     server.registerTool("rebuild_index", {
         description: "重新扫描所有 Markdown 文档，重建 .wiki/index.json 索引",
@@ -22,6 +23,7 @@ export function registerRebuildIndex(server, rootDir) {
             doc.incoming = incomingMap.get(doc.path) || [];
         }
         writeIndex(rootDir, index);
+        appendHistory(rootDir, "reindex", { docCount: index.docs.length });
         return {
             content: [{ type: "text", text: JSON.stringify({ count: index.docs.length }) }],
         };

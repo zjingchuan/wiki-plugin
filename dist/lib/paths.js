@@ -6,7 +6,7 @@ export const ARCHIVE_DIR = path.join(RAW_DIR, "archive");
 export const WIKI_DIR = path.join(DOCS_DIR, ".wiki");
 export const STATE_FILE = path.join(WIKI_DIR, "state.json");
 export const INDEX_FILE = path.join(WIKI_DIR, "index.json");
-export const CATEGORIES = ["产品", "技术", "运维"];
+export const DEFAULT_CATEGORIES = ["产品", "技术", "运维"];
 export function resolveFromRoot(rootDir, ...segments) {
     return path.resolve(rootDir, ...segments);
 }
