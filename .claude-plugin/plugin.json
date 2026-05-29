@@ -1,10 +1,8 @@
 {
   "name": "wiki-plugin",
-  "version": "0.5.1",
   "description": "管理项目文档知识库，自动转换原始文件并建立 Obsidian 兼容的双向链接",
-  "license": "ISC",
-  "author": "zjingchuan",
-  "repository": "https://github.com/zjingchuan/wiki-plugin",
-  "homepage": "https://github.com/zjingchuan/wiki-plugin#readme",
-  "keywords": ["wiki", "documentation", "markdown", "obsidian", "wikilink"]
+  "author": {
+    "name": "zjingchuan",
+    "url": "https://github.com/zjingchuan"
+  }
 }
